@@ -20,6 +20,43 @@ void UMainMenu::SetMenuInterface(IMenuInterface* MenuInterface)
 	this->MenuInterface = MenuInterface;
 }
 
+void UMainMenu::Setup()
+{
+	this->AddToViewport();
+
+	UWorld* World = GetWorld();
+	if (!ensure(World != nullptr)) return;
+
+	APlayerController* PlayerController = World->GetFirstPlayerController();
+	if (!ensure(PlayerController != nullptr)) return;
+
+	FInputModeUIOnly InputModeData;
+	InputModeData.SetWidgetToFocus(this->TakeWidget());
+	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+	PlayerController->SetInputMode(InputModeData);
+
+	PlayerController->bShowMouseCursor = true;
+}
+
+void UMainMenu::OnLevelRemovedFromWorld(ULevel * InLevel, UWorld * InWorld)
+{
+	this->RemoveFromViewport();
+
+	UWorld* World = GetWorld();
+	if (!ensure(World != nullptr)) return;
+
+	APlayerController* PlayerController = World->GetFirstPlayerController();
+	if (!ensure(PlayerController != nullptr)) return;
+
+	FInputModeGameOnly InputModeData;
+	PlayerController->SetInputMode(InputModeData);
+
+	PlayerController->bShowMouseCursor = false;
+
+	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
+}
+
 void UMainMenu::HostServer()
 {
 	if (MenuInterface != nullptr)
